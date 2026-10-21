@@ -1,44 +1,58 @@
-# 💳 Credit Risk Assessment: Lending Club Default Prediction
-### Handling Big Data & Class Imbalance in Financial Modeling
+# Credit Risk Prediction (Lending Club)
 
-## 📌 Project Overview
-This project focuses on building a robust machine learning pipeline to predict loan defaults using real-world data from **Lending Club**. The primary challenge addressed here is managing a massive dataset (**2.2 Million+ rows**) and overcoming extreme **Class Imbalance** to prioritize the detection of risky borrowers.
+Predicting whether a Lending Club loan will default, using 2.2 million historical loans, a Random Forest classifier, and under-sampling to handle class imbalance.
 
-## 📊 The Dataset
-The model utilizes the comprehensive Lending Club dataset (available on Kaggle), which includes historical records of over 2 million loans. 
-* **Key Features:** Loan Amount, Interest Rate, Annual Income, Debt-to-Income (DTI) Ratio, and Employment Length.
-* **Target Variable:** Binary classification (1 = Default/Charged-Off, 0 = Fully Paid).
+## Dataset
 
-## 🛠️ Data Engineering & Cleaning
-Working with Big Data required a strategic preprocessing approach:
-1.  **Dimensionality Reduction:** Removed columns with >30% missing values to optimize memory.
-2.  **Feature Selection:** Focused on high-impact financial indicators used in credit scoring.
-3.  **Handling Imbalance:** Initially, the dataset was heavily biased toward "Fully Paid" loans. I implemented **Random Under-Sampling** to balance the classes, which was crucial for improving the model's sensitivity to defaults.
+[Lending Club loan data](https://www.kaggle.com/datasets/adarshsng/lending-club-loan-data-csv) from Kaggle: 2,260,668 loans and 145 columns. The notebook downloads it with `kagglehub`.
 
-## 🧠 Modeling & Optimization
-* **Algorithm:** Random Forest Classifier.
-* **Initial Challenge:** The baseline model achieved 80% accuracy but a near-zero **Recall (0.07)** for defaults, making it useless for risk management.
-* **The Solution:** After balancing the dataset, the model's ability to identify defaulters improved significantly.
+- **Target:** 1 = Charged Off or Default, 0 = Fully Paid. Loans that are still running are removed.
+- **Features:** loan amount, term, interest rate, installment, grade, employment length, home ownership, annual income, verification status, debt-to-income ratio (DTI), and revolving credit utilization.
 
-## 📈 Performance Results
-After optimization, the model achieved a balanced and realistic performance suitable for banking standards:
-* **Accuracy:** 64%
-* **Recall (Default Detection):** 65% (A **9x improvement** over the baseline).
-* **Precision (Reliability):** 64%
-* **ROC-AUC Score:** Evaluated to ensure strong separability between risk classes.
+After cleaning, 1,227,405 finished loans remain, and only about 20% of them are defaults:
 
+| Fully Paid | Default |
+|---:|---:|
+| 986,272 | 241,133 |
 
+## Approach
 
-## 🔍 Business Insights (Feature Importance)
-The model identified that the **Interest Rate**, **Installment Amount**, and **Debt-to-Income (DTI)** are the top predictors of credit risk. This explainability is vital for financial compliance and transparent decision-making.
+1. Drop columns with more than 30% missing values, then keep 11 standard credit features.
+2. Remove rows with missing values and label-encode the categorical columns.
+3. Balance the classes by randomly under-sampling the fully paid loans to 241,133, so both classes are the same size.
+4. Split 80/20 (stratified) and train a Random Forest with 100 trees.
+5. Evaluate with precision, recall, and ROC-AUC, then check which features the model relies on.
 
+## Results
 
+Before balancing, the model reached 80% accuracy but caught only 7% of defaults (recall 0.07), because it mostly predicted "Fully Paid". After balancing:
 
-## 💻 Tech Stack
-* **Language:** Python
-* **Data Handling:** Pandas, NumPy, KaggleHub
-* **Machine Learning:** Scikit-Learn
-* **Visualization:** Matplotlib, Seaborn
+| Metric | Value |
+|---|---:|
+| Recall (defaults) | 0.65 |
+| Precision (defaults) | 0.64 |
+| Accuracy | 0.64 |
+| ROC-AUC | 0.69 |
 
----
-*Developed by Khalid Hamad Alsaab as part of Data Science coursework and financial risk exploration.*
+The test set is also balanced, so precision on real data, where defaults are rarer, would be lower.
+
+<img src="images/roc_curve.png" width="480" alt="ROC curve">
+
+## Most important features
+
+DTI, revolving utilization, interest rate, annual income, and installment amount have the most influence on the model's predictions.
+
+<img src="images/feature_importance.png" width="640" alt="Top 10 feature importances">
+
+## Run it
+
+```bash
+pip install -r requirements.txt
+jupyter notebook credit_risk_lendingclub.ipynb
+```
+
+The first run downloads the full dataset from Kaggle, so it takes a while.
+
+## Tools
+
+Python, pandas, NumPy, scikit-learn, Matplotlib, Seaborn, kagglehub
